@@ -8,27 +8,32 @@ datasource db {
 }
 
 model Todo {
+  index        Int @default(autoincrement())
   id           String  @id
   title        String
   is_completed Boolean
 
-  user_ID Int @unique
+  user_ID Int 
   user user @relation(fields: [user_ID], references: [userID])
 }
 
 model user {
-  userID   Int @id @default(autoincrement())
-  username String @unique
+  userID   Int @id @default(autoincrement()) 
+  username String @unique 
   password String
-  sessions sessions?
+
 
   todos Todo[]  
+  @@map("user")
 }
 
-model sessions {
-  sessionID String @id
-  user_ID Int @unique
-  user user @relation(fields: [user_ID], references: [userID])
+model Session {
+  id        String   @id
+  sid       String   @unique
+  data      String
+  expiresAt   DateTime
+
 }
+
 
 

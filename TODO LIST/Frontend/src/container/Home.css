@@ -1,0 +1,22 @@
+
+.home_container{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.logout{
+    display: flex;
+    justify-content: start;
+    
+}
+.logout button {
+    display: flex;
+    align-items: center;
+    margin-right: 2rem;
+    background-color: rgb(174, 31, 16);
+}
+.logout img{
+    width: 2rem; 
+    margin-right: 0.5rem;
+}

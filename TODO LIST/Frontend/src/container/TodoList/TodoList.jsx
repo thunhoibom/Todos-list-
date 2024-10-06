@@ -1,9 +1,9 @@
 import Item from "../../components/Item/Item"
-
+import "./TodoList.css"
 function TodoList({todos, setTodos, setIsOnEditting, updatedTitle, isSubmitted, setIsSubmitted,idIsBeenEdittingOn,setIdIsBeenEdittingOn}){
 
     return(
-        <ol>
+        <ol className="listBoard" style={{marginTop:"2rem"}}>
             {
                todos.length > 0 ? todos?.map((item,index) => <Item key={index} 
                                                                    item={item} 

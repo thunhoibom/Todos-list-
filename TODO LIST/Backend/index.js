@@ -1,164 +1,102 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from './routes/prisma.js'
 import express from "express";
 import cors from "cors";
 import session from "express-session";
+import { PrismaSessionStore } from '@quixo3/prisma-session-store';
+import router from './routes/CRUD.js'
+
 
 const app = express();
-const prisma = new PrismaClient();
+
+
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    credentials: true,
+    origin: 'http://192.168.2.8:5173',
+}));
 app.use(session({
     secret: 'nguyens secret',
+    resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 30000 },
-    
+    cookie: {
+        maxAge: 1 * 60 * 60 * 1000,
+        secure: false,
+    },
+    store: new PrismaSessionStore(
+        prisma,
+        {
+            checkPeriod: 24 * 60 * 60 * 1000,
+        },
+    )
 }));
 
 
-//Session
-app.get('/set_session',(req,res) => {
-    req.session.Nguyen = {
-        fullName: "Doan Doan Nguyen",
-        age:'19',
-        nationality: "Vietnamese"
-    }
-    return res.status(200).json({status:"session set"});
-});
-app.get('/get_session',(req,res) => {
-    if(req.session.Nguyen){
-        return res.status(200).json({status:"success",session:req.session.Nguyen})
-    }
-    return res.status(204).json({status: "error", session:"no session"});
-})
-// app.post("/login", (req, res) => {
-//     const {username,password} = req.body;
-//     if(username&&password){
-//         // if(req.sessionID === store.session)
-//         store.all((err,sessions) =>{
-//             console.log(sessions.find(session => session.id === req.sessionID));
-//         });
-//       if (req.session.authenticated){
-//         return res.json(req.session);
-//       }else{
-//         if(password === "123"){
-//             req.session.authenticated = true;
-//             req.session.user = {username,password};
-//            return res.json(req.session);
-//         }else{
-//            return res.status(403).json("msg: bad credentials");
-//         }
-//       }
-//     }else{
-//         return res.status(403).json("msg: bad credentials");
-//     }
-// })
-
-app.post("/authorization",async (req,res) => {
-    const {username,password} = req.body;
-
-    
-    const sessionID = req.sessionID;
-    if(await prisma.sessions.findFirst({
-        where:{sessionID},
-    })){
-        return res.json()
-    }else{
-        await prisma.sessions.create({
-            data:{
-                sessionID: sessionID,
-                user: {
-                    create:{
-                        username: username,
-                        password: password
-                    }
-                }
-            }
-        })
-    }
-    return res.send(200);
-});
-
-
-
-
-//GET
-app.get('/home', (req, res) => {
-    res.send('welcome home');
-  });
-
-app.get("/api/todolist", async (req,res) => {
-    const todos = await prisma.todo.findMany();
-    res.json(todos);
-});
-
-//POST
-app.post("/api/todolist", async(req,res) => {
-    var {id,title, is_completed} = req.body;
-    if(!title || is_completed == null){
-        return res.status(400).send("title and is_completed required");
-    }
+app.post("/register", async (req, res) => {
+    const {username,password,password_repeat} = req.body;
     try{
-        const todo = await prisma.todo.create({
-            data: {
-                id, 
-                title, 
-                is_completed,
-                user:{
-                    create:{
-                        username:"chicken",
-                        password:"123"
-                    }
-                }
-             },
-        });
-        res.json(todo);
+
+
     }catch(error){
         console.error(error);
-        res.status(500).send("Oops, something went wrong");
     }
 })
 
+app.post("/authorization", async (req, res) => {
+    try {
+        const { username, password } = req.body;
 
-//PUT
-app.put("/api/todolist/:id", async (req,res) => {
-    const {title, is_completed} = req.body;
-    const id = req.params.id;
-
-    if(!id){
-        return res.status(400).send("id must be valid string");
-    }
-
-    try{
-        const updatedTodo = await prisma.todo.update({
-            where: {id},
-            data: {title, is_completed}
+        if (!username || !password) {
+            return res.status(400).json("title and is_completed required");
+        }
+        const checkingAccount = prisma.user.findUnique({
+            where: {
+                username: username,
+                password: password
+            }
         })
-        res.json(updatedTodo);
-    }catch(error){
-        res.status(500).send("Oops, something went wrong");
+        if (req.session.authenticated) {
+            req.session.save();
+            return res.json(req.sessionID);
+        } else {
+            if (await checkingAccount) {
+                req.session.authenticated = true;
+                req.session.user = { username, password };
+                req.session.save();
+                return res.json(req.sessionID)
+            } else {
+                return res.send(404);
+            }
+        }
+    } catch (err) {
+        console.error(err);
     }
 
-})
-//delete
-app.delete("/api/todolist/:id",async (req,res) => {
-    const id = req.params.id;
-    if(!id){
-        return res.send("Id is not valid or undefined");
+});
+
+app.get("/authorization", async (req, res) => {
+    if (!req.session.authenticated) {
+        return res.json(false);
+    } else {
+        return res.json(true);
     }
-    try{
-        await prisma.todo.delete({
-            where: {id},
-        })
-        res.status(204).send();
-    }catch(error){
-        res.status(500).send("Oops, something went wrong");
-    }
+});
+app.get("/logout",async (req, res) =>{
+    req.session.destroy(err =>{
+        if(err){
+            next(err);
+        }else{
+            res.clearCookie('connect.sid');
+        }
+    })
 })
+app.use("/", router);
+
+
 
 const port = 5000;
-app.listen(port,'192.168.2.8',() => {
-    console.log("server is listening on: " + '192.168.2.8:' + + port );
+app.listen(port, '192.168.2.8', () => {
+    console.log("server is listening on: " + '192.168.2.8:' + port);
 });
 
 

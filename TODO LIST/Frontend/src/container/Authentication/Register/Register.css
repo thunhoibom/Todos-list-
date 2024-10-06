@@ -1,0 +1,10 @@
+.register__container_input-field{
+    display: flex;
+    flex-direction: column;
+    text-align: start;
+}
+.register__container_input-field input{
+    border: none;
+    border-radius: 5px;
+    padding: 1rem;
+}

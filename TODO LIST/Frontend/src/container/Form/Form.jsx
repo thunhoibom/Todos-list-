@@ -21,6 +21,7 @@ function Form({todos,setTodos}){
                         "Content-Type": "application/json",
                       },
                     body: JSON.stringify(newTodo),
+                    credentials:'include',
                 });
             }catch(err){
                 console.error(err);
@@ -32,9 +33,10 @@ function Form({todos,setTodos}){
 
     return(
         <form className='form_container' onSubmit={handleSubmit}>
-            <h1>basic todo app</h1>
-            <input type="text" name="todo" placeholder="Write what you do next"></input>
-            <button type="submit">Create</button>
+            <input type="text" name="todo" placeholder="What you wanna do"></input>
+            <div>
+                <input id="form-submit" type="submit" value="Create"></input>
+            </div>
         </form>
     );
 }

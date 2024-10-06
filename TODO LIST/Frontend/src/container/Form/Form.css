@@ -1,8 +1,32 @@
-#form_container{
+.form_container{
     display: flex;
+    justify-content: center;
 }
 input[name=todo]{
-    border: solid 2px;
+    border: none;
     border-radius: 5px;
     padding: 0.7rem;
+    width: 400px;
+    height: 1.8rem;
+    font-size: 20px;
+    font-weight: 600;
+    -webkit-transition: 0.5s;
+    transition: 0.5s;
+    background-color: rgb(162, 161, 161);
+    color: white;
+}
+#form-submit{
+    background-color: rgb(24, 162, 14);
+    border: none;
+    height: 100%;
+    width: 8rem;
+    border-radius: 5px;
+    cursor: pointer;
+}
+input[name=todo]:hover{
+    background-color: white;
+    color: black;
+}
+#form-submit:hover{
+    background-color: rgba(255, 0, 0, 0.776);
 }
