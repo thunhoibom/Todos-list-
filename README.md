@@ -1,2 +1,2 @@
 # Todos-list-
-has session authentication
+session authentication
