@@ -1,2 +1,2 @@
 # Todos-list-
-Integrating session authentication
+Simple session authorization
